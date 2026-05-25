@@ -11,25 +11,12 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1152,
-        96
+        -1168,
+        160
       ],
       "id": "dc409f40-a152-4718-9bca-1116af64df80",
       "name": "Webhook Lead Intake",
       "webhookId": "53624a18-67d2-4c8f-b91b-6c3d440c7896"
-    },
-    {
-      "parameters": {
-        "jsCode": "const body = $input.first().json.body;\nconst errors = [];\n\nif (!body.firstName || body.firstName.trim() === '') {\n  errors.push({ field: 'firstName', reason: 'Le prénom est requis.' });\n}\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!body.email || body.email.trim() === '') {\n  errors.push({ field: 'email', reason: \"L'email est requis.\" });\n} else if (!emailRegex.test(body.email)) {\n  errors.push({ field: 'email', reason: \"L'email n'est pas valide.\" });\n}\n\nif (!body.projectType || body.projectType.trim() === '') {\n  errors.push({ field: 'projectType', reason: 'Le type de projet est requis.' });\n}\n\nif (!body.city || body.city.trim() === '') {\n  errors.push({ field: 'city', reason: 'La ville est requise.' });\n}\n\nif (errors.length > 0) {\n  return [{\n    json: {\n      ...body,\n      valid: false,\n      error: 'VALIDATION_ERROR',\n      message: `${errors.length} champ(s) invalide(s).`,\n      errors\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...body,\n    valid: true\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -976,
-        96
-      ],
-      "id": "18d3055a-3a52-4ac5-801c-acfdb0e202e0",
-      "name": "Handle Missing Fieldscript"
     },
     {
       "parameters": {
@@ -462,30 +449,17 @@
       "typeVersion": 2.3,
       "position": [
         -800,
-        96
+        160
       ],
       "id": "071e2e5f-8347-4469-a322-3930171993e7",
       "name": "If"
     },
     {
       "parameters": {
-        "jsCode": "\nconst data = $input.first().json;\n\nconst isHighPriority = data.priority === 'high';\n\nreturn [{\n  json: {\n    ...data,\n    statusLabel: isHighPriority \n      ? 'Lead prioritaire détecté' \n      : 'Lead standard détecté',\n    statusColor: isHighPriority ? '#e74c3c' : '#2ecc71',\n    statusEmoji: isHighPriority ? '⚡' : '✅',\n    badgeColor: isHighPriority ? '#e74c3c' : '#2ecc71',\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -192,
-        80
-      ],
-      "id": "8701afe3-17ba-4573-840f-70331f9b1361",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
         "fromEmail": "admin@weinvest.com",
         "toEmail": "manager@test.com",
         "subject": "Hello there !",
-        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"background-color: #1a1a2e; padding: 20px; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"color: #ffffff; margin: 0; font-size: 24px;\">🏠 WeInvest - Nouveau Lead</h1>\n  </div>\n  <div style=\"background-color: #f8f9fa; padding: 20px; border: 1px solid #e0e0e0;\">\n\n    <!-- CHANGEMENT 1 : emoji + label + couleur dynamiques -->\n    <h2 style=\"color: {{ $json.statusColor }}; margin-top: 0;\">{{ $json.statusEmoji }} {{ $json.statusLabel }}</h2>\n\n    <p style=\"font-size: 15px; color: #333;\">\n      Le flux n8n a bien été exécuté.\n    </p>\n    <p style=\"font-size: 15px; color: #333; font-weight: bold;\">\n      Résumé du lead reçu :\n    </p>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Nom</td>\n        <td style=\"padding: 10px;\">{{ $json.firstName }} {{ $json.lastName }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Email</td>\n        <td style=\"padding: 10px;\">{{ $json.email }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Ville</td>\n        <td style=\"padding: 10px;\">{{ $json.city }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Type de projet</td>\n        <td style=\"padding: 10px;\">{{ $json.projectType }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Budget</td>\n        <td style=\"padding: 10px;\">{{ $json.budget }} €</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Priorité</td>\n        <td style=\"padding: 10px;\">\n          <!-- CHANGEMENT 2 : couleur du badge dynamique -->\n          <span style=\"background-color: {{ $json.badgeColor }}; color: white; padding: 3px 10px; border-radius: 12px;\">\n            {{ $json.priority }}\n          </span>\n        </td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Source</td>\n        <td style=\"padding: 10px;\">{{ $json.source }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Date de réception</td>\n        <!-- CHANGEMENT 3 : date formatée -->\n        <td style=\"padding: 10px;\">{{ $json.formattedDate }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">ID du lead</td>\n        <td style=\"padding: 10px;\">{{ $json.leadId }}</td>\n      </tr>\n    </table>\n    <div style=\"margin-top: 20px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;\">\n      <!-- CHANGEMENT 4 : statut dynamique -->\n      <strong>Statut :</strong><br />\n      {{ $json.statusLabel }}.\n    </div>\n    <p style=\"font-size: 13px; color: #666; margin-top: 20px;\">\n      Ce message a été généré automatiquement depuis un workflow n8n exécuté en local.\n    </p>\n  </div>\n  <div style=\"background-color: #1a1a2e; padding: 15px; border-radius: 0 0 8px 8px; text-align: center;\">\n    <p style=\"color: #888; margin: 0; font-size: 12px;\">\n      Généré automatiquement par le workflow n8n\n    </p>\n  </div>\n</div>",
+        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"background-color: #1a1a2e; padding: 20px; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"color: #ffffff; margin: 0; font-size: 24px;\">🏠 WeInvest - Nouveau Lead</h1>\n  </div>\n  <div style=\"background-color: #f8f9fa; padding: 20px; border: 1px solid #e0e0e0;\">\n\n    <h2 style=\"color: {{ $json.statusColor }}; margin-top: 0;\">{{ $json.statusEmoji }} {{ $json.statusLabel }}</h2>\n\n    <p style=\"font-size: 15px; color: #333;\">\n      Le flux n8n a bien été exécuté.\n    </p>\n    <p style=\"font-size: 15px; color: #333; font-weight: bold;\">\n      Résumé du lead reçu :\n    </p>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Nom</td>\n        <td style=\"padding: 10px;\">{{ $json.firstName }} {{ $json.lastName }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Email</td>\n        <td style=\"padding: 10px;\">{{ $json.email }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Ville</td>\n        <td style=\"padding: 10px;\">{{ $json.city }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Type de projet</td>\n        <td style=\"padding: 10px;\">{{ $json.projectType }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Budget</td>\n        <td style=\"padding: 10px;\">{{ $json.budget }} €</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Priorité</td>\n        <td style=\"padding: 10px;\">\n          <span style=\"background-color: {{ $json.badgeColor }}; color: white; padding: 3px 10px; border-radius: 12px;\">\n            {{ $json.priority }}\n          </span>\n        </td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Source</td>\n        <td style=\"padding: 10px;\">{{ $json.source }}</td>\n      </tr>\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Date de réception</td>\n        <td style=\"padding: 10px;\">{{ $json.formattedDate }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">ID du lead</td>\n        <td style=\"padding: 10px;\">{{ $json.leadId }}</td>\n      </tr>\n    </table>\n    <div style=\"margin-top: 20px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;\">\n      <strong>Statut :</strong><br />\n      {{ $json.statusLabel }}.\n    </div>\n    <p style=\"font-size: 13px; color: #666; margin-top: 20px;\">\n      Ce message a été généré automatiquement depuis un workflow n8n exécuté en local.\n    </p>\n  </div>\n  <div style=\"background-color: #1a1a2e; padding: 15px; border-radius: 0 0 8px 8px; text-align: center;\">\n    <p style=\"color: #888; margin: 0; font-size: 12px;\">\n      Généré automatiquement par le workflow n8n\n    </p>\n  </div>\n</div>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -503,6 +477,32 @@
           "name": "SMTP account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst errors = [];\n\nif (!body.firstName || body.firstName.trim() === '') {\n  errors.push({ field: 'firstName', reason: 'Le prénom est requis.' });\n}\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!body.email || body.email.trim() === '') {\n  errors.push({ field: 'email', reason: \"L'email est requis.\" });\n} else if (!emailRegex.test(body.email)) {\n  errors.push({ field: 'email', reason: \"L'email n'est pas valide.\" });\n}\n\nif (!body.projectType || body.projectType.trim() === '') {\n  errors.push({ field: 'projectType', reason: 'Le type de projet est requis.' });\n}\n\nif (!body.city || body.city.trim() === '') {\n  errors.push({ field: 'city', reason: 'La ville est requise.' });\n}\n\nif (errors.length > 0) {\n  return [{\n    json: {\n      ...body,\n      valid: false,\n      error: 'VALIDATION_ERROR',\n      message: `${errors.length} champ(s) invalide(s).`,\n      errors\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...body,\n    valid: true\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        160
+      ],
+      "id": "18d3055a-3a52-4ac5-801c-acfdb0e202e0",
+      "name": "Validate input data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Enrich Lead Data').first().json;\nconst isHighPriority = data.priority === 'high';\nconst date = new Date(data.receivedAt);\n\nreturn [{\n  json: {\n    ...data,\n    statusLabel: isHighPriority ? 'Lead prioritaire détecté' : 'Lead standard détecté',\n    statusColor: isHighPriority ? '#e74c3c' : '#2ecc71',\n    statusEmoji: isHighPriority ? '⚡' : '✅',\n    badgeColor: isHighPriority ? '#e74c3c' : '#2ecc71',\n    formattedDate: date.toLocaleDateString('fr-FR') + ' à ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        80
+      ],
+      "id": "8701afe3-17ba-4573-840f-70331f9b1361",
+      "name": "Prepare Email Data"
     }
   ],
   "pinData": {},
@@ -511,7 +511,7 @@
       "main": [
         [
           {
-            "node": "Handle Missing Fieldscript",
+            "node": "Validate input data",
             "type": "main",
             "index": 0
           }
@@ -533,18 +533,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Missing Fieldscript": {
-      "main": [
-        [
-          {
-            "node": "If",
+            "node": "Prepare Email Data",
             "type": "main",
             "index": 0
           }
@@ -580,22 +569,33 @@
         ]
       ]
     },
-    "Code in JavaScript": {
+    "Send Email": {
       "main": [
         [
           {
-            "node": "Send Email",
+            "node": "Update Email status",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send Email": {
+    "Validate input data": {
       "main": [
         [
           {
-            "node": "Update Email status",
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
             "type": "main",
             "index": 0
           }
@@ -608,7 +608,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "983c6140-a42a-4cc7-8cde-bda85e4e933f",
+  "versionId": "df6e3001-e788-405a-925f-690bc03bdbcc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e99287b7488ab4ad7d5bcef83b54f011182e434ec96784fb2b564badfb9f3798"

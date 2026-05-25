@@ -125,7 +125,7 @@ docker compose exec postgres psql -U root -d weinvest_db -c "TRUNCATE TABLE lead
 ### Credentials à configurer
 
 **SMTP (Mailpit)**
-
+@
 | Paramètre | Valeur |
 |---|---|
 | Host | `mailpit` |
