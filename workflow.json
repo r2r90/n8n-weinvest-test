@@ -1,5 +1,5 @@
 {
-  "name": "My workflow",
+  "name": "Lead Intake Workflow",
   "nodes": [
     {
       "parameters": {
@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        0
+        -128,
+        -176
       ],
       "id": "b0310b73-6998-4c59-a204-7854c29b89ce",
       "name": "Webhook Lead Intake",
@@ -20,90 +20,25 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "cf1e4a34-1410-44c2-a416-3424ac81c95d",
-              "leftValue": "={{ $json.body.firstName }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "b1885985-4470-475c-a9d9-2072625d20c7",
-              "leftValue": "={{ $json.body.email }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "cbeffd38-5bbd-4609-8a27-c8c8ae4b45af",
-              "leftValue": "={{ $json.body.projectType }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "7e3b38e3-e5d5-4822-aad6-a61ce55e5de8",
-              "leftValue": "={{ $json.body.city }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        208,
-        0
-      ],
-      "id": "10aeb70a-16a8-4c44-9755-50ac4543193f",
-      "name": "Validate Required Fields"
-    },
-    {
-      "parameters": {
-        "jsCode": "const body = $input.first().json.body;\n\nconst requiredFields = ['firstName', 'email', 'projectType', 'city'];\nconst missingFields = requiredFields.filter((field) => !body[field]);\n\nreturn [\n  {\n    json: {\n      success: false,\n      error: 'MISSING_REQUIRED_FIELDS',\n      message: 'Certains champs obligatoires sont manquants. Veuillez vérifier votre demande.',\n      missingFields,\n    },\n  },\n];"
+        "jsCode": "const body = $input.first().json.body;\nconst errors = [];\n\nif (!body.firstName || body.firstName.trim() === '') {\n  errors.push({ field: 'firstName', reason: 'Le prénom est requis.' });\n}\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!body.email || body.email.trim() === '') {\n  errors.push({ field: 'email', reason: \"L'email est requis.\" });\n} else if (!emailRegex.test(body.email)) {\n  errors.push({ field: 'email', reason: \"L'email n'est pas valide.\" });\n}\n\nif (!body.projectType || body.projectType.trim() === '') {\n  errors.push({ field: 'projectType', reason: 'Le type de projet est requis.' });\n}\n\nif (!body.city || body.city.trim() === '') {\n  errors.push({ field: 'city', reason: 'La ville est requise.' });\n}\n\nif (errors.length > 0) {\n  return [{\n    json: {\n      ...body,\n      valid: false,\n      error: 'VALIDATION_ERROR',\n      message: `${errors.length} champ(s) invalide(s).`,\n      errors\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...body,\n    valid: true\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        192
+        48,
+        -176
       ],
       "id": "b9839b13-c477-4632-8401-9c13bff6e6a5",
       "name": "Handle Missing Fieldscript"
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body;\n\nconst now = new Date();\n\nconst priority = (body.projectType === 'seller' || body.budget > 400000) ? 'high' : 'normal';\n\nconst leadId = `lead_${now.toISOString().slice(0,10).replace(/-/g, '')}_${Math.random().toString(36).slice(2, 8)}`;\n\nconst summary = `${body.firstName} ${body.lastName} est un lead ${body.projectType === 'seller' ? 'vendeur' : 'acheteur'} à ${body.city} avec un budget de ${body.budget} €.`;\n\nreturn [{\n  json: {\n    ...body,\n    leadId,\n    receivedAt: now.toISOString(),\n    priority,\n    summary\n  }\n}];"
+        "jsCode": "const crypto = require('crypto');\n\nconst body = $input.first().json;\n\nconst now = new Date();\n\nconst priority =\n  body.projectType === 'seller' ||\n  body.budget > 400000\n    ? 'high'\n    : 'standard';\n\nconst leadId = crypto.randomUUID();\n\nconst summary =\n`${body.firstName} ${body.lastName}\nest un lead ${\nbody.projectType === 'seller'\n? 'vendeur'\n: 'acheteur'\n} à ${body.city}\navec un budget de ${body.budget} €.`;\n\nreturn [{\n  json: {\n    ...body,\n    leadId,\n    receivedAt: now.toISOString(),\n    priority,\n    summary\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        384,
+        432,
         -192
       ],
       "id": "5efaa813-93d6-43c4-b8d2-517e7d58c7d0",
@@ -154,8 +89,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1056,
-        -208
+        1024,
+        -272
       ],
       "id": "10e7dcf2-6177-4588-aef0-90677c4953a0",
       "name": "Send Priority Email",
@@ -172,14 +107,14 @@
         "fromEmail": "admin@weinvest.com",
         "toEmail": "manager@test.com",
         "subject": "Hello there !",
-        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"background-color: #1a1a2e; padding: 20px; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"color: #ffffff; margin: 0; font-size: 24px;\">🏠 WeInvest - Nouveau Lead</h1>\n  </div>\n\n  <div style=\"background-color: #f8f9fa; padding: 20px; border: 1px solid #e0e0e0;\">\n    <h2 style=\"color: #2ecc71; margin-top: 0;\">✅ Lead standard détecté</h2>\n\n    <p style=\"font-size: 15px; color: #333;\">\n      Le flux n8n a bien été exécuté.\n    </p>\n\n    <p style=\"font-size: 15px; color: #333; font-weight: bold;\">\n      Résumé du lead reçu :\n    </p>\n\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Nom</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.firstName }} {{ $('Enrich Lead Data').item.json.lastName }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Email</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.email }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Ville</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.city }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Type de projet</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.projectType }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Budget</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.budget }} €\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Priorité</td>\n        <td style=\"padding: 10px;\">\n          <span style=\"background-color: #e74c3c; color: white; padding: 3px 10px; border-radius: 12px;\">\n            {{ $('Enrich Lead Data').item.json.priority }}\n          </span>\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Source</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.source }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Date de réception</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.receivedAt }}\n        </td>\n      </tr>\n\n      <tr>\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">ID du lead</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.leadId }}\n        </td>\n      </tr>\n    </table>\n\n    <div style=\"margin-top: 20px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;\">\n      <strong>Statut :</strong><br />\n      Lead prioritaire détecté.\n    </div>\n\n    <p style=\"font-size: 13px; color: #666; margin-top: 20px;\">\n      Ce message a été généré automatiquement depuis un workflow n8n exécuté en local.\n    </p>\n  </div>\n\n  <div style=\"background-color: #1a1a2e; padding: 15px; border-radius: 0 0 8px 8px; text-align: center;\">\n    <p style=\"color: #888; margin: 0; font-size: 12px;\">\n      Généré automatiquement par le workflow n8n\n    </p>\n  </div>\n</div>",
+        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"background-color: #1a1a2e; padding: 20px; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"color: #ffffff; margin: 0; font-size: 24px;\">🏠 WeInvest - Nouveau Lead</h1>\n  </div>\n\n  <div style=\"background-color: #f8f9fa; padding: 20px; border: 1px solid #e0e0e0;\">\n    <h2 style=\"color: #2ecc71; margin-top: 0;\">✅ Lead standard détecté</h2>\n\n    <p style=\"font-size: 15px; color: #333;\">\n      Le flux n8n a bien été exécuté.\n    </p>\n\n    <p style=\"font-size: 15px; color: #333; font-weight: bold;\">\n      Résumé du lead reçu :\n    </p>\n\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Nom</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.firstName }} {{ $('Enrich Lead Data').item.json.lastName }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Email</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.email }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Ville</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.city }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Type de projet</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.projectType }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Budget</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.budget }} €\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Priorité</td>\n        <td style=\"padding: 10px;\">\n          <span style=\"background-color: #2ecc71; color: white; padding: 3px 10px; border-radius: 12px;\">\n            {{ $('Enrich Lead Data').item.json.priority }}\n          </span>\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Source</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.source }}\n        </td>\n      </tr>\n\n      <tr style=\"border-bottom: 1px solid #e0e0e0;\">\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">Date de réception</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.receivedAt }}\n        </td>\n      </tr>\n\n      <tr>\n        <td style=\"padding: 10px; font-weight: bold; color: #555;\">ID du lead</td>\n        <td style=\"padding: 10px;\">\n          {{ $('Enrich Lead Data').item.json.leadId }}\n        </td>\n      </tr>\n    </table>\n\n    <div style=\"margin-top: 20px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;\">\n      <strong>Statut :</strong><br />\n      Lead standard détecté.\n    </div>\n\n    <p style=\"font-size: 13px; color: #666; margin-top: 20px;\">\n      Ce message a été généré automatiquement depuis un workflow n8n exécuté en local.\n    </p>\n  </div>\n\n  <div style=\"background-color: #1a1a2e; padding: 15px; border-radius: 0 0 8px 8px; text-align: center;\">\n    <p style=\"color: #888; margin: 0; font-size: 12px;\">\n      Généré automatiquement par le workflow n8n\n    </p>\n  </div>\n</div>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1056,
-        -48
+        1024,
+        -96
       ],
       "id": "2ca239cf-b9f3-4f9d-8954-e4e467525735",
       "name": "Send Standard Email",
@@ -196,8 +131,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1264,
-        -128
+        1248,
+        -192
       ],
       "id": "d6eb1f52-c609-4c70-bfb1-0fa26d71cda4",
       "name": "Merge"
@@ -211,8 +146,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1664,
-        -128
+        1648,
+        -192
       ],
       "id": "ce3f3d73-ba5c-4c7b-8cf1-7146901d9e9e",
       "name": "Respond to Webhook"
@@ -377,7 +312,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        608,
+        640,
         -192
       ],
       "id": "0454da52-89b7-4f20-a082-ce0e763466be",
@@ -392,7 +327,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{\n  {\n    success: false,\n    error: $json.error,\n    message: $json.message,\n    missingFields: $json.missingFields\n  }\n}}",
+        "responseBody": "={{\n  {\n    success: false,\n    error: $json.error,\n    message: $json.message,\n    errors: $json.errors\n  }\n}}",
         "options": {
           "responseCode": 400
         }
@@ -400,8 +335,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        640,
-        192
+        432,
+        -32
       ],
       "id": "f59f3f63-16d4-4aa9-97ef-027d0897ebe7",
       "name": "Respond Error"
@@ -579,8 +514,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1456,
-        -128
+        1440,
+        -192
       ],
       "id": "5fb14812-9593-49b6-801a-e45901dba056",
       "name": "Update Email status",
@@ -590,30 +525,46 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e335ce61-5f97-4784-b9e5-6fe31d4a65ac",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -176
+      ],
+      "id": "340108c5-313a-49e9-89d0-b0bdb791cf5c",
+      "name": "If"
     }
   ],
   "pinData": {},
   "connections": {
     "Webhook Lead Intake": {
       "main": [
-        [
-          {
-            "node": "Validate Required Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Validate Required Fields": {
-      "main": [
-        [
-          {
-            "node": "Enrich Lead Data",
-            "type": "main",
-            "index": 0
-          }
-        ],
         [
           {
             "node": "Handle Missing Fieldscript",
@@ -700,7 +651,7 @@
       "main": [
         [
           {
-            "node": "Respond Error",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -722,6 +673,24 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Enrich Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -729,7 +698,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "c5713265-cc51-46b4-845f-c6ad87848bde",
+  "versionId": "b26c1608-e0f3-404f-93cb-368cae7caf41",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "7cbd29839913418b01088bccb5b17089e454f2939fb7cae63badea2acd985353"

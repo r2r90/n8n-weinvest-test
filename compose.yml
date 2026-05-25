@@ -10,6 +10,7 @@ services:
       - WEBHOOK_URL=http://localhost:5678/
       - N8N_BASIC_AUTH_USER=Admin
       - N8N_BASIC_AUTH_PASSWORD=Admin123
+      - NODE_FUNCTION_ALLOW_BUILTIN=crypto
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
