@@ -22,7 +22,7 @@ Workflow n8n simulant la réception et le traitement d'un lead immobilier, avec 
 ## Démarrage
 
 ```bash
-git clone https://github.com/r2r90/we-invest.git
+git clone https://github.com/r2r90/n8n-weinvest-test.git
 cd we-invest
 cp .env.example .env
 docker compose up
@@ -206,30 +206,27 @@ curl -X POST http://localhost:5678/webhook/lead-intake \
 Webhook POST /webhook/lead-intake
     │
     ▼
-Validate Required Fields
+Validate Input Data
 (firstName, email, projectType, city)
     │
-    ├── false → Handle Missing Fields → Respond Error (JSON + champs manquants)
+    ├── invalid → Respond Error (400 + champs manquants)
     │
-    └── true  → Enrich Lead Data (leadId, receivedAt, priority, summary)
+    └── valid  → Enrich Lead Data (leadId, receivedAt, priority, summary)
                     │
                     ▼
               Save Lead to PostgreSQL (INSERT)
                     │
                     ▼
-              Check Priority (priority === "high")
-                    │
-                    ├── true  → Send Priority Email (HTML)
-                    └── false → Send Standard Email (HTML)
+              Prepare Email Data (statusLabel, couleurs, formattedDate)
                     │
                     ▼
-                  Merge
+              Send Email (HTML dynamique)
                     │
                     ▼
-              Update Email Status (UPDATE email_sent = true)
+              Update Email Status (email_sent = true)
                     │
                     ▼
-              Respond to Webhook (JSON: leadId, priority, status)
+              Respond to Webhook (200 + JSON)
 ```
 
 ---
