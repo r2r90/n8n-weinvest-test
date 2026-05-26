@@ -23,7 +23,7 @@ Workflow n8n simulant la réception et le traitement d'un lead immobilier, avec 
 
 ```bash
 git clone https://github.com/r2r90/n8n-weinvest-test.git
-cd we-invest
+cd n8n-weinvest-test
 cp .env.example .env
 docker compose up
 ```
